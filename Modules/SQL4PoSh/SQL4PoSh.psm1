@@ -1,4 +1,6 @@
-﻿function Get-ConnectionString {
+﻿# TODO
+#  поиграться  с ParameterSetName для кореетного ввода
+function Get-ConnectionString {
     [CmdletBinding()]
     param (
         [parameter(
@@ -40,13 +42,15 @@
         [parameter(
             HelpMessage = 'if connect with OLE DB, use this option'
         )]
-        [ValidateSet('Access', 'Active Directory', 'MySQL', 'Oracle')]
+        [ValidateSet('Access', 'Active Directory', 'MySQL', 'Oracle', 'Microsoft')]
         
         [string]$oledb,
+        
         [parameter()]
-        [string]$datasource
+        [string]$datasource,
 
-
+        [parameter()]
+        [hashtable]$custom
     )
     begin {
         $string = @{};
@@ -82,6 +86,21 @@
                         $string.'Password' = $password;
                     }
                 }
+                'Microsoft' {
+                    $string.'Provider' = 'sqloledb';
+                    $string.'Data Source' = $datasource;
+                    if (![System.String]::IsNullOrEmpty()) {
+                        $string.'Data Source'    
+                    }
+                    $string.'Initial Catalog' = $database;
+                    if($trustedConnection.IsPresent) {
+                        $string.'Integrated Security' = 'SSPI';
+                    }
+                    else {
+                        $string.'User Id' = $user;
+                        $string.'Password' = $password;
+                    }
+                }
                 'MySQL' {
                     $string.'Provider' = 'MySQLProv';
                     $string.'Data Source' = $datasource;
@@ -97,7 +116,7 @@
             }
             $string.'Database' = $database;
             if ($trustedConnection.IsPresent) {
-                $string.'Trusted_Connection' = 'True'
+                $string.'Trusted_Connection' = 'True';
             }
             else {
                 $string.'User Id' = $user;
@@ -105,7 +124,11 @@
             }
         }
 
-        return [string]::Join(" ", ($string.GetEnumerator() | ForEach-Object -Process { "$($_.Key)=$($_.Value);" }));        
+        if ($custom.Count -ne 0) {
+            $string += $custom;
+        }
+
+        return [string]::Join(" ", ($string.GetEnumerator() | ForEach-Object -Process { "$($_.Key)=$($_.Value);" }));
     }
 }
 
