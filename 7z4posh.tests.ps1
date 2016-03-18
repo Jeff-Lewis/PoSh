@@ -6,3 +6,5 @@ Import-Module $name -Force;
 
 $z = Create-7zipper;
 Benchmark-7z -zipper $z
+#$z.process.args = 'b 1';
+#$z.RunSync();
