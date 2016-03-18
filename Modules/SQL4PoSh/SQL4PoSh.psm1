@@ -48,58 +48,65 @@
 
 
     )
+    begin {
+        $string = @{};
+    }
     process {
-        [string]$string = $null;
         if (![String]::IsNullOrEmpty($oledb)) {
             switch ($oledb) {
                 'Oracle' {
-                    $string += "Provider=OraOLEDB.Oracle; Date Source=$datasource; ";
+                    $string.'Provider' = 'OraOLEDB.Oracle';
+                    $string.'Date Source' = $datasource;
                     if ($trustedConnection.IsPresent) {
-                        $string += 'OSAuthent=1; ';
+                        $string.'OSAuthent' = '1';
                     }
                     else {
-                        $string += "User Id=$user; Password=$password; ";
+                        $string.'User Id'= $user;
+                        $string.'Password' = $password;
                     }
                 }
                 'Access' {
-                    $string += "Provider=Microsoft.ACE.OLEDB.12.0; Data Source=$datasource; ";
+                    $string.'Provider' = 'Microsoft.ACE.OLEDB.12.0';
+                    $string.'Data Source' = $datasource;
                     if ($trustedConnection.IsPresent) {
-                        $string += "Persist Security Info=False; ";
+                        $string.'Persist Security Info' = 'False';
                     }
                     else {
-                        $string += "Jet OLEDB:Database Password=$password; ";
+                        $string.'Jet OLEDB:Database Password' = $password;
                     }
                 }
                 'Active Directory' {
-                    $string += 'Provider=ADSDSOObject; ';
+                    $string.'Provider' = 'ADSDSOObject';
                     if (!$trustedConnection.IsPresent) {
-                        $string += "User Id=$user;Password=$password; "
+                        $string.'User Id' = $user;
+                        $string.'Password' = $password;
                     }
                 }
                 'MySQL' {
-                    $string += "Provider=MySQLProv; Data Source=$datasource; ";
-                    $string += "Uid=$user; Pwd=$password; ";
+                    $string.'Provider' = 'MySQLProv';
+                    $string.'Data Source' = $datasource;
+                    $string.'Uid' = $user;
+                    $string.'Pwd' = $password;
                 }
-
             } 
         }
         else {
-            $string += "Server=$server";
+            $string.'Server' = $server;
             if (![String]::IsNullOrEmpty($instance)) {
-                $string += "\$instance";
+                $string.'Server' += "\$instance";
             }
-            $string += "; Database=$database; "
+            $string.'Database' = $database;
             if ($trustedConnection.IsPresent) {
-                $string += "Trusted_Connection=True;"   
+                $string.'Trusted_Connection' = 'True'
             }
             else {
-                $string += "User Id=$user; Password=$password;"
+                $string.'User Id' = $user;
+                $string.'Password' = $password;
             }
         }
 
-        return $string;
+        return [string]::Join(" ", ($string.GetEnumerator() | ForEach-Object -Process { "$($_.Key)=$($_.Value);" }));        
     }
-
 }
 
 function Get-SQLData {
