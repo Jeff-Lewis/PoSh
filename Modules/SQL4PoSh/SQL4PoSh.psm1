@@ -190,3 +190,20 @@ function Get-SQLData {
         Unregister-Event -SourceIdentifier $sqlInfomessageEvent.Name;
     }
 }
+
+function Invoke-SQLQuery {
+    [CmdletBinding()]
+    param (
+        [string]$connectionString,
+        [string]$query
+    )
+    process {
+        $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+        $connection.ConnectionString = $connectionString;
+        $command = $connection.CreateCommand();
+        $command.CommandText = $query;
+        $connection.Open();
+        $command.ExecuteNonQuery();
+        $connection.Close();
+    }
+}
