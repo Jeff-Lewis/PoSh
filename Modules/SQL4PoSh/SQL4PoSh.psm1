@@ -202,7 +202,7 @@ function Invoke-SQLQuery {
         $sqlInfoMessageHandler = {
             Write-Host "event";
         }
-        $sqlInfoMessageEvent = Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $sqlInfoMessageHandler -SupportEvent
+        $sqlInfoMessageEvent = Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $sqlInfoMessageHandler;
         $connection.FireInfoMessageEventOnUserErrors = $true;
         $connection.ConnectionString = $connectionString;
         $command = $connection.CreateCommand();
