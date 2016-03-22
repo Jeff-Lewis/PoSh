@@ -140,20 +140,26 @@ function Get-SQLData {
         [switch]$isSQLServer
     )
     begin {
-        [System.Data.Common.DbConnection]$connection = $null;
+        #[System.Data.Common.DbConnection]$connection = $null;
         if ($isSQLServer.IsPresent) {
+            # Adding event handers for info messages
             $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+            $sqlInfoMessageHandler = {
+                $EventsArgs;
+            }
+            $sqlInfomessageEvent = Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $sqlInfoMessageHandler;    
         }
         else {
             $connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
-        }
+        }    
         
         $connection.ConnectionString = $connsetcionString;
-        
-        [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
+        $connection.Open();
     }
 
     process {
+        [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
+        
         $command.CommandText = $query;
         
         [System.Data.Common.DataAdapter]$adapter = $null;
@@ -165,6 +171,22 @@ function Get-SQLData {
         }
 
         [System.Data.DataSet]$dataSet = New-Object -TypeName System.Data.DataSet;
-        $adapter.Fill($dataSet);
+        $result = @{};
+        try {
+            $adapter.Fill($dataSet);
+            $result.data = $dataSet.Tables[0];
+        }
+        catch {
+            $result.'Errors' = $_.Exception.InnerException.Errors;
+        }
+
+        return $result;
+    }
+
+    end {
+        if (($connection.State -ne 'Closed') -or ($connection.State -ne 'Broken')) {
+            $connection.Close();            
+        }
+        Unregister-Event -SourceIdentifier $sqlInfomessageEvent.Name;
     }
 }
