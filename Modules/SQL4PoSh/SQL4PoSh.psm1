@@ -199,11 +199,18 @@ function Invoke-SQLQuery {
     )
     process {
         $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+        $sqlInfoMessageHandler = {
+            Write-Host "event";
+        }
+        $sqlInfoMessageEvent = Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $sqlInfoMessageHandler -SupportEvent
+        $connection.FireInfoMessageEventOnUserErrors = $true;
         $connection.ConnectionString = $connectionString;
         $command = $connection.CreateCommand();
         $command.CommandText = $query;
         $connection.Open();
+        
         $command.ExecuteNonQuery();
         $connection.Close();
+        #Unregister-Event -SourceIdentifier $sqlInfomessageEvent.Name;
     }
 }
