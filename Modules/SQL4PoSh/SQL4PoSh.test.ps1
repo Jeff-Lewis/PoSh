@@ -7,5 +7,5 @@ Import-Module $name -Force;
 $str = Get-ConnectionString -server '.' -instance 'velo2014' -database 'master' -trustedConnection
 Write-Host "Connection string: '$str'";
 
-$query = "print 123";
-Invoke-SQLQuery -connectionString $str -query $query;
+$query = "sp_who";
+$res = Invoke-SQLQuery -connectionString $str -query $query;

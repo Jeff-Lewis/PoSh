@@ -202,13 +202,13 @@ function Invoke-SQLQuery {
     }
     process {
         $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
-        $scriptOnInfoMessage = [System.Data.SqlClient.SqlInfoMessageEventHandler] {
-            param ([System.Object]$sender, [System.Data.SqlClient.SqlInfoMessageEventArgs]$event)
-            $result += $event.Errors;
+        #[System.Data.SqlClient.SqlInfoMessageEventHandler]
+        $scriptInfoMessage =  {
+            $event.MessageData.errors += $EventArgs.Errors;
         }
         # this not work, using hide method
-        #$sqlInfoMessageEvent = Register-ObjectEvent -InputObject $connection -EventName InfoMessage -Action $scriptOnInfoMessage;
-        $connection.add_InfoMessage($scriptOnInfoMessage);
+        $eventInfoMessage = Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result;
+        #$connection.add_InfoMessage($scriptOnInfoMessage);
         
         # Continue processing the rest of the statements in a command regardless of any errors produced by the server
         $connection.FireInfoMessageEventOnUserErrors = $true;
@@ -220,6 +220,8 @@ function Invoke-SQLQuery {
         
         $command.ExecuteNonQuery();
         $connection.Close();
-        #Unregister-Event -SourceIdentifier $sqlInfomessageEvent.Name;
+        #Wait-Event -SourceIdentifier $eventInfoMessage.Name;
+        return $result;
+        Unregister-Event -SourceIdentifier $sqlInfomessageEvent.Name;
     }
 }
