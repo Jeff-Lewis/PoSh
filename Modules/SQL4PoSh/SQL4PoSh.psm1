@@ -197,31 +197,28 @@ function Invoke-SQLQuery {
         [string]$connectionString,
         [string]$query
     )
-    begin {
-        $result = @{};
-    }
     process {
+        $result = @{};
         $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
-        #[System.Data.SqlClient.SqlInfoMessageEventHandler]
+        
         $scriptInfoMessage =  {
-            $event.MessageData.errors += $EventArgs.Errors;
+            # Add to $result.errors
+            $event.MessageData.errors += $eventArgs.Errors;
         }
-        # this not work, using hide method
-        $eventInfoMessage = Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result;
+        # Create hide event. Only this method is work!!! 
+        Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
         #$connection.add_InfoMessage($scriptOnInfoMessage);
         
         # Continue processing the rest of the statements in a command regardless of any errors produced by the server
         $connection.FireInfoMessageEventOnUserErrors = $true;
-
         $connection.ConnectionString = $connectionString;
+
         $command = $connection.CreateCommand();
         $command.CommandText = $query;
         $connection.Open();
-        
-        $command.ExecuteNonQuery();
+        $result.rowCount = $command.ExecuteNonQuery();
         $connection.Close();
-        #Wait-Event -SourceIdentifier $eventInfoMessage.Name;
+
         return $result;
-        Unregister-Event -SourceIdentifier $sqlInfomessageEvent.Name;
     }
 }
