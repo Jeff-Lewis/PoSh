@@ -209,13 +209,20 @@ function Invoke-SQLQuery {
         [switch]$isSQLServer
     )
     begin {
-        
+        # Create connection
+        $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+
+        # Continue processing the rest of the statements in a command regardless of any errors produced by the server
+        $connection.FireInfoMessageEventOnUserErrors = $true;
+        $connection.ConnectionString = $connectionString;
+        $connection.Open();
     }
     process {
         $result = @{};
-        # Create connection
-        $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
         
+        $command = $connection.CreateCommand();
+        $command.CommandText = $query;
+
         # Adding event handers for info messages
         $scriptInfoMessage =  {
             # Add to $result.errors
@@ -223,19 +230,14 @@ function Invoke-SQLQuery {
         }
         # Create hide event. Only this method is work!!! 
         Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
-        #$connection.add_InfoMessage($scriptOnInfoMessage);
         
-        # Continue processing the rest of the statements in a command regardless of any errors produced by the server
-        $connection.FireInfoMessageEventOnUserErrors = $true;
-        $connection.ConnectionString = $connectionString;
-        
-        $command = $connection.CreateCommand();
-        $command.CommandText = $query;
-        
-        $connection.Open();
+        # Execute
         $result.rowCount = $command.ExecuteNonQuery();
-        $connection.Close();
-
+        
         return $result;
+    }
+    end {
+        # Close Connection
+        $connection.Close();
     }
 }
