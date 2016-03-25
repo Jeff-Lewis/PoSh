@@ -194,13 +194,29 @@ function Get-SQLData {
 function Invoke-SQLQuery {
     [CmdletBinding()]
     param (
+        [Parameter(Mandatory = $true)]
         [string]$connectionString,
-        [string]$query
+
+        [parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true,
+            HelpMessage = 'Enter query string'
+        )]
+        [AllowEmptyString()]
+        [string]$query,
+
+        [parameter()]
+        [switch]$isSQLServer
     )
+    begin {
+        
+    }
     process {
         $result = @{};
+        # Create connection
         $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
         
+        # Adding event handers for info messages
         $scriptInfoMessage =  {
             # Add to $result.errors
             $event.MessageData.errors += $eventArgs.Errors;
@@ -212,9 +228,10 @@ function Invoke-SQLQuery {
         # Continue processing the rest of the statements in a command regardless of any errors produced by the server
         $connection.FireInfoMessageEventOnUserErrors = $true;
         $connection.ConnectionString = $connectionString;
-
+        
         $command = $connection.CreateCommand();
         $command.CommandText = $query;
+        
         $connection.Open();
         $result.rowCount = $command.ExecuteNonQuery();
         $connection.Close();
