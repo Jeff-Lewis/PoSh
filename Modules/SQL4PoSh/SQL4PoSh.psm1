@@ -210,7 +210,7 @@ function Invoke-SQLQuery {
     )
     begin {
         # Create connection
-        $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+        [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
 
         # Continue processing the rest of the statements in a command regardless of any errors produced by the server
         $connection.FireInfoMessageEventOnUserErrors = $true;
@@ -218,13 +218,13 @@ function Invoke-SQLQuery {
         $connection.Open();
     }
     process {
-        $result = @{};
+        [hashtable]$result = @{};
         
-        $command = $connection.CreateCommand();
+        [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
         $command.CommandText = $query;
 
         # Adding event handers for info messages
-        $scriptInfoMessage =  {
+        [scriptblock]$scriptInfoMessage =  {
             # Add to $result.errors
             $event.MessageData.errors += $eventArgs.Errors;
         }
