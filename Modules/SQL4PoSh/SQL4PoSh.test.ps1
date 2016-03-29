@@ -51,5 +51,15 @@ print '231'
     $res;
 }
 
+function test5 {
+    Write-Host 'Test 4: oledb test';
+    $res = $null;
 
-test1
+    $strole = 'Provider=sqloledb;Data Source=.\velo2014;Initial Catalog=master;Integrated Security=SSPI;';
+    $query = "print 'Hello, World!'";
+    $res = Invoke-SQLQuery -connectionString $strole -query $query;
+    $res;
+}
+
+
+test5

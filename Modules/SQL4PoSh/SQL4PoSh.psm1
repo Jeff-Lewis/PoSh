@@ -210,10 +210,15 @@ function Invoke-SQLQuery {
     )
     begin {
         # Create connection
-        [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
-
-        # Continue processing the rest of the statements in a command regardless of any errors produced by the server
-        $connection.FireInfoMessageEventOnUserErrors = $true;
+        if($isSQLServer.IsPresent) {
+            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+            # Continue processing the rest of the statements in a command regardless of any errors produced by the server
+            $connection.FireInfoMessageEventOnUserErrors = $true;
+        }
+        else {
+            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
+        }
+        
         $connection.ConnectionString = $connectionString;
         $connection.Open();
     }
