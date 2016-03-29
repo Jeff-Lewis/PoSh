@@ -61,5 +61,17 @@ function test5 {
     $res;
 }
 
+function test6 {
+    Write-Host 'Test 4: insert test';
+    $res = $null;
 
-test5
+    $str1 = Get-ConnectionString -server '.' -instance 'velo2014' -database 'testdb' -user 'test' -password 'Qq123456';
+    $query = @"
+insert into testtable.testint
+values (123);
+"@;
+    $res = Invoke-SQLQuery -connectionString $str1 -query $query -isSQLServer;
+    $res;
+}
+
+test6

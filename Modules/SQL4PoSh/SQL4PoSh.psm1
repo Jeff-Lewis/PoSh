@@ -206,7 +206,10 @@ function Invoke-SQLQuery {
         [string]$query,
 
         [parameter()]
-        [switch]$isSQLServer
+        [switch]$isSQLServer,
+
+        [parameter()]
+        [switch]$withTransact
     )
     begin {
         # Create connection
@@ -214,9 +217,15 @@ function Invoke-SQLQuery {
             [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
             # Continue processing the rest of the statements in a command regardless of any errors produced by the server
             $connection.FireInfoMessageEventOnUserErrors = $true;
+            if ($withTransact.IsPresent) {
+                [System.Data.Common.DbTransaction]$transaction = New-Object -TypeName System.Data.SqlClient.SqlTransaction;
+            }
         }
         else {
             [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
+            if ($withTransact.IsPresent) {
+                [System.Data.Common.DbTransaction]$transaction = New-Object -TypeName System.Data.OleDb.OleDbTransaction;
+            }
         }
         
         $connection.ConnectionString = $connectionString;
@@ -228,6 +237,10 @@ function Invoke-SQLQuery {
         [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
         $command.CommandText = $query;
 
+        if ($withTransact.IsPresent) {
+            $command.Transaction = $transaction;
+        }
+        
         # Adding event handers for info messages
         [scriptblock]$scriptInfoMessage =  {
             # Add to $result.errors
@@ -236,8 +249,23 @@ function Invoke-SQLQuery {
         # Create hide event. Only this method is work!!! 
         Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
         
-        # Execute
-        $result.rowCount = $command.ExecuteNonQuery();
+        try {
+            # Execute
+            $result.rowCount = $command.ExecuteNonQuery();
+
+            if ($withTransact.IsPresent) {
+                $transaction.Commit();
+            }
+        }
+        catch {    
+            if ($withTransact.IsPresent) {
+                try {
+                    $transaction.Rollback();
+                }
+                catch {
+                }
+            }
+        }
         
         return $result;
     }
