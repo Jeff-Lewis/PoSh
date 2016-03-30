@@ -191,10 +191,52 @@ function Get-SQLData {
     }
 }
 
+<#
+.SYNOPSIS
+Executes a SQL statement against the connection and returns the number of rows affected.
+
+.DESCRIPTION
+Executes a SQL statement against the connection and returns the number of rows affected. 
+Also return errors and info message.
+
+.PARAMETER connectionString
+String used to open a SQL Server database. You can use cmdlet Get-ConnectionString to 
+get format string or do it yorself (http://connectionstrings.com).
+
+.PARAMETER query
+String with sql instructions
+
+.PRAMETER isSQLServer
+Switching to use of SQL Server
+
+.PARAMETER withTransact
+Switching to the use of the transaction mechanism. One transaction is used for all requests 
+sent via pipeline. if you want to use transactions for each request individually, it is 
+necessary to use cmdlet's foreach.
+
+.INPUTS
+String. You can pipe query string objects.
+
+.OUTPUTS
+Hashtable. Returns the number of rows for the query, as well as related information, and 
+error messages.
+
+.EXAMPLE
+$query = "print 'Hello, World!'";
+Invoke-SQLQuery -connectionString $str -query $query;
+
+.EXAMPLE
+$query = @("print 123", "print 'Hello, World!'");
+$query | Invoke-SQLQuery -connectionString $str -isSQLServer;
+
+#>
 function Invoke-SQLQuery {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(
+            Mandatory = $true,
+            HelpMessage = 'Enetr connection string'
+        )]
         [string]$connectionString,
 
         [parameter(
@@ -205,10 +247,14 @@ function Invoke-SQLQuery {
         [AllowEmptyString()]
         [string]$query,
 
-        [parameter()]
+        [parameter(
+            HelpMessage = 'Use to connect SQl Server'
+        )]
         [switch]$isSQLServer,
 
-        [parameter()]
+        [parameter(
+            HelpMessage = 'Use to enable transaction mechanism'
+        )]
         [switch]$withTransact
     )
     begin {
@@ -222,18 +268,23 @@ function Invoke-SQLQuery {
             [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
         }
         
+        # Open connection
         $connection.ConnectionString = $connectionString;
         $connection.Open();
+
+        # Use transaction
         if ($withTransact.IsPresent) {
-            [System.Data.Common.DbTransaction]$transaction = $connection.BeginTransaction()
+            [System.Data.Common.DbTransaction]$transaction = $connection.BeginTransaction();
         }
     }
     process {
+        # Zero out result for each pipe query.
         [hashtable]$result = @{};
         
         [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
         $command.CommandText = $query;
 
+        # Use transaction
         if ($withTransact.IsPresent) {
             $command.Transaction = $transaction;
         }
@@ -252,6 +303,7 @@ function Invoke-SQLQuery {
         return $result;
     }
     end {
+        # Use transaction
         if ($withTransact.IsPresent) {
             try {
                 $transaction.Commit();
@@ -264,6 +316,7 @@ function Invoke-SQLQuery {
                 }
             }
         }
+        
         # Close Connection
         $connection.Close();
     }
