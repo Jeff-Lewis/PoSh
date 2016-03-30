@@ -217,19 +217,16 @@ function Invoke-SQLQuery {
             [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
             # Continue processing the rest of the statements in a command regardless of any errors produced by the server
             $connection.FireInfoMessageEventOnUserErrors = $true;
-            if ($withTransact.IsPresent) {
-                [System.Data.Common.DbTransaction]$transaction = New-Object -TypeName System.Data.SqlClient.SqlTransaction;
-            }
         }
         else {
             [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
-            if ($withTransact.IsPresent) {
-                [System.Data.Common.DbTransaction]$transaction = New-Object -TypeName System.Data.OleDb.OleDbTransaction;
-            }
         }
         
         $connection.ConnectionString = $connectionString;
         $connection.Open();
+        if ($withTransact.IsPresent) {
+            [System.Data.Common.DbTransaction]$transaction = $connection.BeginTransaction()
+        }
     }
     process {
         [hashtable]$result = @{};

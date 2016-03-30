@@ -4,7 +4,9 @@ $env:PSModulePath = $env:PSModulePath.Insert(0, (Split-Path -Path $here -Parent)
 $name = $MyInvocation.MyCommand.Name.Split('.')[0];
 Import-Module $name -Force;
 
-$str = Get-ConnectionString -server '.' -instance 'velo2014' -database 'master' -trustedConnection
+$str = Get-ConnectionString -server '.' -instance 'velo2014' -database 'master' -trustedConnection;
+$str1 = Get-ConnectionString -server '.' -instance 'velo2014' -database 'testdb' -user 'test' -password 'Qq123456';
+    $strole = 'Provider=sqloledb;Data Source=.\velo2014;Initial Catalog=master;Integrated Security=SSPI;';
 Write-Host "Connection string: '$str'";
 
 function test1 {
@@ -54,8 +56,6 @@ print '231'
 function test5 {
     Write-Host 'Test 4: oledb test';
     $res = $null;
-
-    $strole = 'Provider=sqloledb;Data Source=.\velo2014;Initial Catalog=master;Integrated Security=SSPI;';
     $query = "print 'Hello, World!'";
     $res = Invoke-SQLQuery -connectionString $strole -query $query;
     $res;
@@ -64,14 +64,44 @@ function test5 {
 function test6 {
     Write-Host 'Test 4: insert test';
     $res = $null;
-
-    $str1 = Get-ConnectionString -server '.' -instance 'velo2014' -database 'testdb' -user 'test' -password 'Qq123456';
     $query = @"
-insert into testtable.testint
+insert into testtable (testint)
 values (123);
 "@;
     $res = Invoke-SQLQuery -connectionString $str1 -query $query -isSQLServer;
     $res;
 }
+function test7 {
+    Write-Host 'Test 4: insert test with transaction';
+    $res = $null;
+    $query = @"
+insert into testtable (testint)
+values (1);
 
-test6
+insert into testtable (testint)
+values ('qwer');
+
+"@;
+    $res = Invoke-SQLQuery -connectionString $str1 -query $query -isSQLServer -withTransact;
+    $res;
+}
+
+function test8 {
+    Write-Host 'Test 8: insert multiple vals from pipeline';
+    $res = $null;
+    $query = @(
+@"
+insert into testtable (testint)
+values (1);
+"@,
+@"
+insert into testtable (testint)
+values ('qwer');
+"@
+    );
+
+    $res = $query | Invoke-SQLQuery -connectionString $str1 -isSQLServer -withTransact;
+    $res;
+}
+
+test8
