@@ -246,16 +246,17 @@ function Invoke-SQLQuery {
         # Create hide event. Only this method is work!!! 
         Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
         
-        try {
-            # Execute
-            $result.rowCount = $command.ExecuteNonQuery();
-
-            if ($withTransact.IsPresent) {
+        # Execute
+        $result.rowCount = $command.ExecuteNonQuery();
+        
+        return $result;
+    }
+    end {
+        if ($withTransact.IsPresent) {
+            try {
                 $transaction.Commit();
             }
-        }
-        catch {    
-            if ($withTransact.IsPresent) {
+            catch {
                 try {
                     $transaction.Rollback();
                 }
@@ -263,10 +264,6 @@ function Invoke-SQLQuery {
                 }
             }
         }
-        
-        return $result;
-    }
-    end {
         # Close Connection
         $connection.Close();
     }
