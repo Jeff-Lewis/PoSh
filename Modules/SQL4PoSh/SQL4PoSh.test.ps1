@@ -5,8 +5,8 @@ $name = $MyInvocation.MyCommand.Name.Split('.')[0];
 Import-Module $name -Force;
 
 $str = Get-ConnectionString -server '.\'  -database 'master' -trustedConnection;
-$str1 = Get-ConnectionString -server '.' -instance 'velo2014' -database 'testdb' -user 'test' -password 'Qq123456';
-    $strole = 'Provider=sqloledb;Data Source=.\velo2014;Initial Catalog=master;Integrated Security=SSPI;';
+$str1 = Get-ConnectionString -server '.\' -database 'testdb' -trustedConnection;
+$strole = 'Provider=sqloledb;Data Source=.\velo2014;Initial Catalog=master;Integrated Security=SSPI;';
 Write-Host "Connection string: '$str'";
 
 function test1 {
@@ -120,4 +120,4 @@ function test10 {
     $res;
 }
 
-test10
+test7

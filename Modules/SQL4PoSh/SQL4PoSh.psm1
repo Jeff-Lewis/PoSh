@@ -280,7 +280,6 @@ Invoke-SQLQuery -connectionString $str -query $query;
 .EXAMPLE
 $query = @("print 123", "print 'Hello, World!'");
 $query | Invoke-SQLQuery -connectionString $str -isSQLServer;
-
 #>
 function Invoke-SQLQuery {
     [CmdletBinding()]
@@ -321,8 +320,15 @@ function Invoke-SQLQuery {
         }
         
         # Open connection
-        $connection.ConnectionString = $connectionString;
-        $connection.Open();
+        try {
+            $connection.ConnectionString = $connectionString;
+            $connection.Open();
+        }
+        catch {
+            Out-Default -InputObject 'Cant connect to server';
+            Out-Default -InputObject $_.Exception;
+            return @{'errors' = $_.Exception};
+        }
 
         # Use transaction
         if ($withTransact.IsPresent) {
@@ -330,6 +336,9 @@ function Invoke-SQLQuery {
         }
     }
     process {
+        if ($connection.State -eq 'Closed') {
+            return;
+        }
         # Zero out result for each pipe query.
         [hashtable]$result = @{};
         
@@ -355,6 +364,9 @@ function Invoke-SQLQuery {
         return $result;
     }
     end {
+        if ($connection.State -eq 'Closed') {
+            return;
+        }
         # Use transaction
         if ($withTransact.IsPresent) {
             try {
@@ -362,9 +374,15 @@ function Invoke-SQLQuery {
             }
             catch {
                 try {
+                    Out-Default -InputObject "Can't commit this transaction. Rollback!";
+                    Out-Default -InputObject $_.Exception;
+                    $result.errors += $_.Exception;
                     $transaction.Rollback();
                 }
                 catch {
+                    Out-Default -InputObject "Can't rollback transaction!";
+                    Out-Default -InputObject $_.Exception;
+                    $result.errors += $_.Exception;
                 }
             }
         }
@@ -374,6 +392,44 @@ function Invoke-SQLQuery {
     }
 }
 
+<#
+.SYNOPSIS
+Executes a SQL statement against the connection and returns query results with the number of rows affected.
+
+.DESCRIPTION
+Executes a SQL statement against the connection and returns query results withthe number of rows affected. 
+Also return errors and info message.
+
+.PARAMETER connectionString
+String used to open a SQL Server database. You can use cmdlet Get-ConnectionString to 
+get format string or do it yorself (http://connectionstrings.com).
+
+.PARAMETER query
+String with sql instructions
+
+.PRAMETER isSQLServer
+Switching to use of SQL Server
+
+.PARAMETER withTransact
+Switching to the use of the transaction mechanism. One transaction is used for all requests 
+sent via pipeline. if you want to use transactions for each request individually, it is 
+necessary to use cmdlet's foreach.
+
+.INPUTS
+String. You can pipe query string objects.
+
+.OUTPUTS
+Hashtable. Returns the number of rows for the query, as well as related information, and 
+error messages.
+
+.EXAMPLE
+$query = "print 'Hello, World!'";
+Invoke-SQLQuery -connectionString $str -query $query;
+
+.EXAMPLE
+$query = @("print 123", "print 'Hello, World!'");
+$query | Invoke-SQLQuery -connectionString $str -isSQLServer;
+#>
 function Invoke-SQLReader {
     [CmdletBinding()]
     param(
@@ -409,13 +465,35 @@ function Invoke-SQLReader {
         }
 
         # Open connection
-        $connection.ConnectionString = $connectionString;
-        $connection.Open();
+        try {
+            $connection.ConnectionString = $connectionString;
+            $connection.Open();
+        }
+        catch {
+            Out-Default -InputObject 'Cant connect to server';
+            Out-Default -InputObject $_.Exception;
+            return @{'errors' = $_.Exception};
+        }
+
+        # Use transaction
+        if ($withTransact.IsPresent) {
+            [System.Data.Common.DbTransaction]$transaction = $connection.BeginTransaction();
+        }
     }
 
     process {
+        if ($connection.State -eq 'Closed') {
+            return;
+        }
         # Zero out result for each pipe query.
         [hashtable]$result = @{};
+
+        [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
+        $command.CommandText = $query;
+        # Use transaction
+        if ($withTransact.IsPresent) {
+            $command.Transaction = $transaction;
+        }
 
         # Adding event handers for info messages
         [scriptblock]$scriptInfoMessage =  {
@@ -425,15 +503,39 @@ function Invoke-SQLReader {
         # Create hide event. Only this method is work!!! 
         Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
         
-        [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
-        $command.CommandText = $query;
+        # Execute
         [System.Data.Common.DbDataReader]$reader = $command.ExecuteReader();
         [System.Data.DataTable]$result.data = New-Object -TypeName System.Data.DataTable;
         $result.data.Load($reader);
         $reader.Close();
+        
         return $result;
     }
     end {
+        if ($connection.State -eq 'Closed') {
+            return;
+        }
+        # Use transaction
+        if ($withTransact.IsPresent) {
+            try {
+                $transaction.Commit();
+            }
+            catch {
+                try {
+                    Out-Default -InputObject "Can't commit this transaction. Rollback!";
+                    Out-Default -InputObject $_.Exception;
+                    $result.errors += $_.Exception;
+                    $transaction.Rollback();
+                }
+                catch {
+                    Out-Default -InputObject "Can't rollback transaction!";
+                    Out-Default -InputObject $_.Exception;
+                    $result.errors += $_.Exception;
+                }
+            }
+        }
+        
+        # Close Connection
         $connection.Close();
     }
 }
