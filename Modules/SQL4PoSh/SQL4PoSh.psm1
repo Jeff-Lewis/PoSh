@@ -362,12 +362,24 @@ function Invoke-SQLReader {
     }
 
     process {
+        # Zero out result for each pipe query.
+        [hashtable]$result = @{};
+
+        # Adding event handers for info messages
+        [scriptblock]$scriptInfoMessage =  {
+            # Add to $result.errors
+            $event.MessageData.errors += $eventArgs.Errors;
+        }
+        # Create hide event. Only this method is work!!! 
+        Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
+        
         [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
         $command.CommandText = $query;
         [System.Data.Common.DbDataReader]$reader = $command.ExecuteReader();
-        [System.Data.DataTable]$result = New-Object -TypeName System.Data.DataTable;
-        $result.Load($reader);
+        [System.Data.DataTable]$result.data = New-Object -TypeName System.Data.DataTable;
+        $result.data.Load($reader);
         $reader.Close();
+        return $result;
     }
     end {
         $connection.Close();

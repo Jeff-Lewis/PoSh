@@ -112,4 +112,12 @@ function test9 {
     $res;
 }
 
-test9
+function test10 {
+    Write-Host 'Test10: return single datareader';
+    $res = $null;
+    $query = "print 'Hello, World!'";
+    $res = Invoke-SQLReader -connectionString $str -query $query -isSQLServer;
+    $res;
+}
+
+test10
