@@ -4,7 +4,7 @@ $env:PSModulePath = $env:PSModulePath.Insert(0, (Split-Path -Path $here -Parent)
 $name = $MyInvocation.MyCommand.Name.Split('.')[0];
 Import-Module $name -Force;
 
-$str = Get-ConnectionString -server '.' -instance 'velo2014' -database 'master' -trustedConnection;
+$str = Get-ConnectionString -server '.\'  -database 'master' -trustedConnection;
 $str1 = Get-ConnectionString -server '.' -instance 'velo2014' -database 'testdb' -user 'test' -password 'Qq123456';
     $strole = 'Provider=sqloledb;Data Source=.\velo2014;Initial Catalog=master;Integrated Security=SSPI;';
 Write-Host "Connection string: '$str'";
@@ -104,4 +104,12 @@ values ('qwer');
     $res;
 }
 
-test8
+function test9 {
+    Write-Host 'Test 9: return single datareader';
+    $res = $null;
+    $query = "sp_who";
+    $res = Invoke-SQLReader -connectionString $str -query $query -isSQLServer;
+    $res;
+}
+
+test9

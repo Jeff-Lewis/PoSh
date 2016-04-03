@@ -321,3 +321,55 @@ function Invoke-SQLQuery {
         $connection.Close();
     }
 }
+
+function Invoke-SQLReader {
+    [CmdletBinding()]
+    param(
+        [Parameter(
+            Mandatory = $true,
+            HelpMessage = 'Enetr connection string'
+        )]
+        [string]$connectionString,
+
+        [parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true,
+            HelpMessage = 'Enter query string'
+        )]
+        [AllowEmptyString()]
+        [string]$query,
+
+         [parameter(
+            HelpMessage = 'Use to connect SQl Server'
+        )]
+        [switch]$isSQLServer
+    )
+
+    begin {
+        # Create connection
+        if($isSQLServer.IsPresent) {
+            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+            # Continue processing the rest of the statements in a command regardless of any errors produced by the server
+            $connection.FireInfoMessageEventOnUserErrors = $true;
+        }
+        else {
+            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
+        }
+
+        # Open connection
+        $connection.ConnectionString = $connectionString;
+        $connection.Open();
+    }
+
+    process {
+        [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
+        $command.CommandText = $query;
+        [System.Data.Common.DbDataReader]$reader = $command.ExecuteReader();
+        [System.Data.DataTable]$result = New-Object -TypeName System.Data.DataTable;
+        $result.Load($reader);
+        $reader.Close();
+    }
+    end {
+        $connection.Close();
+    }
+}
