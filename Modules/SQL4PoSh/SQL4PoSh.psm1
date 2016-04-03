@@ -1,5 +1,58 @@
 ﻿# TODO
 #  поиграться  с ParameterSetName для кореетного ввода
+
+<#
+.SYNOPSIS
+Create connectionstring
+
+.DESCRIPTION
+Create connection string of input parameters. If necessary, you can use the bush option 
+to enter your additional data.
+
+.PARAMETER server
+Server name. Use '.\' ask local server and '.' ask local server with instance.
+
+.PARAMETER instance
+Instance name. If you use the default: you can not to set.
+
+.PRAMETER database
+Database name.
+
+.PRAMETER user
+User name that has access to the database.
+
+.PRAMETER password
+User password to connect to the database.
+
+.PRAMETER trustedConnection
+If you using the same credentials to enter Windows and connect to the database, you can use 
+this option to not enter explicitly login and password.
+
+.PRAMETER oledb
+Switch to use OleDB interface connect to source.
+
+.PRAMETER datasource
+Data source for database connection.
+
+.PRAMETER custom
+Hashtable with additional parameters.
+
+.INPUTS
+String. You can pipe query string objects.
+
+.OUTPUTS
+Hashtable. Returns the number of rows for the query, as well as related information, and 
+error messages.
+
+.EXAMPLE
+$query = "print 'Hello, World!'";
+Invoke-SQLQuery -connectionString $str -query $query;
+
+.EXAMPLE
+$query = @("print 123", "print 'Hello, World!'");
+$query | Invoke-SQLQuery -connectionString $str -isSQLServer;
+
+#>
 function Get-ConnectionString {
     [CmdletBinding()]
     param (
@@ -43,7 +96,6 @@ function Get-ConnectionString {
             HelpMessage = 'if connect with OLE DB, use this option'
         )]
         [ValidateSet('Access', 'Active Directory', 'MySQL', 'Oracle', 'Microsoft')]
-        
         [string]$oledb,
         
         [parameter()]
