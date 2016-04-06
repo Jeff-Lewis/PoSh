@@ -4,8 +4,8 @@ $env:PSModulePath = $env:PSModulePath.Insert(0, (Split-Path -Path $here -Parent)
 $name = $MyInvocation.MyCommand.Name.Split('.')[0];
 Import-Module $name -Force;
 
-$str = Get-ConnectionString -server '.\'  -database 'master' -trustedConnection;
-$str1 = Get-ConnectionString -server '.\' -database 'testdb' -trustedConnection;
+$str = Get-ConnectionString -server '.' -instance 'velo2014'  -database 'master' -trustedConnection;
+$str1 = Get-ConnectionString -server '.' -instance 'velo2014' -database 'testdb' -trustedConnection;
 $strole = 'Provider=sqloledb;Data Source=.\velo2014;Initial Catalog=master;Integrated Security=SSPI;';
 Write-Host "Connection string: '$str'";
 
@@ -54,7 +54,7 @@ print '231'
 }
 
 function test5 {
-    Write-Host 'Test 4: oledb test';
+    Write-Host 'Test 5: oledb test';
     $res = $null;
     $query = "print 'Hello, World!'";
     $res = Invoke-SQLQuery -connectionString $strole -query $query;
@@ -62,7 +62,7 @@ function test5 {
 }
 
 function test6 {
-    Write-Host 'Test 4: insert test';
+    Write-Host 'Test 6: insert test';
     $res = $null;
     $query = @"
 insert into testtable (testint)
@@ -72,15 +72,13 @@ values (123);
     $res;
 }
 function test7 {
-    Write-Host 'Test 4: insert test with transaction';
+    Write-Host 'Test 7: insert test with transaction';
     $res = $null;
     $query = @"
 insert into testtable (testint)
 values (1);
-
 insert into testtable (testint)
-values ('qwer');
-
+values ('123');
 "@;
     $res = Invoke-SQLQuery -connectionString $str1 -query $query -isSQLServer -withTransact;
     $res;

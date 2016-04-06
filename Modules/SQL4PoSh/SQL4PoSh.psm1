@@ -310,13 +310,14 @@ function Invoke-SQLQuery {
     )
     begin {
         # Create connection
+        [System.Data.Common.DbConnection]$connection = $null;
         if($isSQLServer.IsPresent) {
-            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+            $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
             # Continue processing the rest of the statements in a command regardless of any errors produced by the server
             $connection.FireInfoMessageEventOnUserErrors = $true;
         }
         else {
-            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
+            $connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
         }
         
         # Open connection
@@ -367,7 +368,7 @@ function Invoke-SQLQuery {
         if ($connection.State -eq 'Closed') {
             return;
         }
-        # Use transaction
+        # Use transaction Commit or Rollback
         if ($withTransact.IsPresent) {
             try {
                 $transaction.Commit();
