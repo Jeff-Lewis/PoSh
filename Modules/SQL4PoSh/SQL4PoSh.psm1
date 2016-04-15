@@ -187,33 +187,31 @@ function Get-ConnectionString {
 function Get-SQLData {
     [CmdletBinding()]
     param (
-        [string]$connsetcionString,
+        [string]$connetcionString,
         [string]$query,
         [switch]$isSQLServer
     )
     begin {
-        #[System.Data.Common.DbConnection]$connection = $null;
+        # Create connection
+        [System.Data.Common.DbConnection]$connection = $null;
         if ($isSQLServer.IsPresent) {
             # Adding event handers for info messages
             $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
-            $sqlInfoMessageHandler = {
-                $EventsArgs;
-            }
-            $sqlInfomessageEvent = Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $sqlInfoMessageHandler;    
         }
         else {
             $connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
-        }    
+        }
         
-        $connection.ConnectionString = $connsetcionString;
+        $connection.ConnectionString = $connetcionString;
         $connection.Open();
     }
 
     process {
+        # Create comman
         [System.Data.Common.DbCommand]$command = $connection.CreateCommand();
-        
         $command.CommandText = $query;
         
+        # Create Adapter
         [System.Data.Common.DataAdapter]$adapter = $null;
         if ($isSQLServer.IsPresent) {
             $adapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter($command);
@@ -222,14 +220,15 @@ function Get-SQLData {
             $adapter = New-Object -TypeName System.Data.OleDb.OleDbDataAdapter($command);
         }
 
+        # Create DataSet
         [System.Data.DataSet]$dataSet = New-Object -TypeName System.Data.DataSet;
         $result = @{};
         try {
             $adapter.Fill($dataSet);
-            $result.data = $dataSet.Tables[0];
+            $result.data = $dataSet.Tables;
         }
         catch {
-            $result.'Errors' = $_.Exception.InnerException.Errors;
+            $result.'errors' = $_.Exception.InnerException.Errors;
         }
 
         return $result;
@@ -239,7 +238,6 @@ function Get-SQLData {
         if (($connection.State -ne 'Closed') -or ($connection.State -ne 'Broken')) {
             $connection.Close();            
         }
-        Unregister-Event -SourceIdentifier $sqlInfomessageEvent.Name;
     }
 }
 
@@ -456,13 +454,14 @@ function Invoke-SQLReader {
 
     begin {
         # Create connection
+        [System.Data.Common.DbConnection]$connection = $null;
         if($isSQLServer.IsPresent) {
-            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
+            $connection = New-Object -TypeName System.Data.SqlClient.SqlConnection;
             # Continue processing the rest of the statements in a command regardless of any errors produced by the server
             $connection.FireInfoMessageEventOnUserErrors = $true;
         }
         else {
-            [System.Data.Common.DbConnection]$connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
+            $connection = New-Object -TypeName System.Data.OleDb.OleDbConnection;
         }
 
         # Open connection
@@ -471,7 +470,7 @@ function Invoke-SQLReader {
             $connection.Open();
         }
         catch {
-            Out-Default -InputObject 'Cant connect to server';
+            Out-Default -InputObject 'Can not connect to server';
             Out-Default -InputObject $_.Exception;
             return @{'errors' = $_.Exception};
         }
