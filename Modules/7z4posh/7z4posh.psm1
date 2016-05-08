@@ -209,6 +209,8 @@ Test speed archive on computer.
 Zip object, created of cmdlet Create-7zipper.
 .PARAMETER iterations
 Number of iterations.
+.PARAMETER quiet
+Don't show stdout after run.
 .INPUTS
 You can`t pipe object to cmdlets
 .OUTPUTS
@@ -226,13 +228,15 @@ function Benchmark-7z {
 		[parameter()]
 		[int]$iterations = 1,
         
-        [parameter()]
-        [switch]$verbouse
+    [parameter()]
+    [switch]$quiet
 	)
 	process {
+		$zipper.process.verbouse = !$quiet;
 		$zipper.process.verbouse = $verbouse;
 		$zipper.process.args = "b $iterations";
 		$zipper.Run();
+		return $zipper;
 	}
 }
 
