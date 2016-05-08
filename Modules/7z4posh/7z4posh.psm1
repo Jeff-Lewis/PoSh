@@ -206,14 +206,14 @@ Benchmark on computer.
 .DESCRIPTION
 Test speed archive on computer.
 .PARAMETER zipper
-Zip object, created cmdlet Create-7zipper.
+Zip object, created of cmdlet Create-7zipper.
 .PARAMETER iterations
 Number of iterations.
 .INPUTS
 You can`t pipe object to cmdlets
 .OUTPUTS
 Object with args, exit and out stream $_.process.out
-Fill $_.process.
+Fill $zipper.process.
 .EXAMPLE
 Benchmark-7z -zipper $7z
 #>
@@ -230,13 +230,29 @@ function Benchmark-7z {
         [switch]$verbouse
 	)
 	process {
-        $zipper.process.verbouse = $verbouse;
+		$zipper.process.verbouse = $verbouse;
 		$zipper.process.args = "b $iterations";
 		$zipper.Run();
 	}
 }
 
 <#
+.SYNOPSIS
+List archive
+.DESCRIPTION
+List archive file.
+.PARAMETER zipper
+Zip object, created of cmdlet Create-7zipper.
+.PARAMETER path
+Path to archive file.
+.PARAMETER quiet
+Don't show stdout after run.
+.INPUTS
+String. You can use pipeline from path to archive.
+.OUTPUTS
+Object with args, exit and out stream $_.process.out
+Fill $zipper.process.
+
 #>
 function List-7z {
 	[cmdletbinding()]
@@ -244,10 +260,14 @@ function List-7z {
 		[parameter(Mandatory = $true)]
 		[psobject]$zipper,
 		
-		[parameter()]
-		[string]$path
+		[parameter(ValueFromPipeline = $true)]
+		[string]$path,
+		
+		[Parameter()]
+		[switch]$quiet
 	)
 	process {
+		$zipper.process.verbouse = !$quiet;
 		$zipper.process.args = "l $path";
 		$zipper.Run();
 		return $zipper;
