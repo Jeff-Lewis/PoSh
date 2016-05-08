@@ -272,11 +272,14 @@ function List-7z {
 		$zipper.process.verbouse = !$quiet;
 		$zipper.AddSwitch("l $path");
 		$zipper.process.args = "l $path";
-		if ($password) {
-			$zipper.AddSwitch("-p$password");
+		switch ($true) {
+			{$password.Length -ne 0} {
+				$zipper.AddSwitch("-p$password");
+			}
 		}
 		
 		$zipper.Run();
+		return $zipper;
 	}
 }
 
