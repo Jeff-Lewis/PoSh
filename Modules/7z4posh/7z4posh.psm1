@@ -168,33 +168,33 @@ function Create-7zipper {
 	
 	begin {
 		if (!(Test-Path $path)) {
-            trow New-Object System.IO.FileNotFoundException('Archiver bin file not found', $path);				
+			trow New-Object System.IO.FileNotFoundException('Archiver bin file not found', $path);				
 		}
 	}
 	process {
-        $process = New-Object -TypeName psobject -Property (
-            @{
-                'args' = $null;
-                'out' = $null;
-                'startTime' = $null;
-                'exitCode' = $null;
-                'exitTime' = $null;
-                'verbouse' = [switch]$null;
-            }
-        );
-        $zipper = New-Object -TypeName psobject |
-		    Add-Member -MemberType NoteProperty -Name item -Value (Get-Item -Path $path) -PassThru |
+		$process = New-Object -TypeName psobject -Property (
+			@{
+				'args' = $null;
+				'out' = $null;
+				'startTime' = $null;
+				'exitCode' = $null;
+				'exitTime' = $null;
+				'verbouse' = [switch]$null;
+			}
+		);
+		$zipper = New-Object -TypeName psobject |
+			Add-Member -MemberType NoteProperty -Name item -Value (Get-Item -Path $path) -PassThru |
 			Add-Member -MemberType NoteProperty -Name process -Value $process -PassThru |		
 			Add-Member -MemberType ScriptMethod -Name Run -Value {
-                $this.process = Invoke-Executable -fileName $this.item.FullName -arg $this.process.args -workDir (Get-Item -Path '.\').FullName -verbouse:$this.process.verbouse;     
-            } -PassThru |
-            Add-Member -MemberType ScriptMethod -Name AddSwitch -Value {
-                param(
-                    [string]$switch
-                )
+				$this.process = Invoke-Executable -fileName $this.item.FullName -arg $this.process.args -workDir (Get-Item -Path '.\').FullName -verbouse:$this.process.verbouse;     
+			} -PassThru |
+			Add-Member -MemberType ScriptMethod -Name AddSwitch -Value {
+				param(
+					[string]$switch
+				)
 
-                $this.args = $this.args + " $switch";
-            } -PassThru;
+					$this.process.args = $this.process.args + " $switch";
+			} -PassThru;
 
 		return $zipper;
 	}
@@ -264,13 +264,20 @@ function List-7z {
 		[string]$path,
 		
 		[Parameter()]
+		[string]$password,
+		
+		[Parameter()]
 		[switch]$quiet
 	)
 	process {
 		$zipper.process.verbouse = !$quiet;
+		$zipper.AddSwitch("l $path");
 		$zipper.process.args = "l $path";
+		if ($password) {
+			$zipper.AddSwitch("-p$password");
+		}
+		
 		$zipper.Run();
-		return $zipper;
 	}
 }
 
