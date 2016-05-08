@@ -252,7 +252,6 @@ String. You can use pipeline from path to archive.
 .OUTPUTS
 Object with args, exit and out stream $_.process.out
 Fill $zipper.process.
-
 #>
 function List-7z {
 	[cmdletbinding()]
@@ -281,58 +280,51 @@ function List-7z {
 	}
 }
 
+<#
+.SYNOPSIS
+Test archive file.
+.DESCRIPTION
+Simple test archive files.
+.PARAMETER zipper
+Zip object, created of cmdlet Create-7zipper.
+.PARAMETER archive
+Path to archive file.
+.PARAMETER files
+wildcard of files in archive for testing. By default use all files '*' wildcard.
+.PARAMETER password
+Specifies password.
+.PARAMETER quiet
+Don't show stdout after run.
+.INPUTS
+String. You can use pipeline from path to archive.
+.OUTPUTS
+Object with args, exit and out stream $_.process.out
+Fill $zipper.process.
+#>
 function Test-7z {
 	[cmdletbinding()]
 	param(
 		[parameter(Mandatory = $true)]
 		[psobject]$zipper,
 		
-		[parameter()]
+		[parameter(ValueFromPipeline = $true)]
+		[Alias('path')]
 		[string]$archive,
 		
 		[parameter()]
 		[string]$files = '*',
 		
 		[parameter()]
-		[string]$includeArchives,
-		
-		[parameter()]
-		[switch]$disableParsingOfArchiveName,
-		
-		[parameter()]
-		[string]$include,
-		
-		[parameter()]
-		[string]$password,
-		
-		[parameter()]
-		[switch]$recurse,
-		
-		[parameter()]
-		[string]$exclude
+		[string]$password
 	)
 	
 	process {
-		$zipper.process.args = "t $archive $files";
+		$zipper.process.verbouse = !$quiet;
+		$zipper.AddSwitch("t $archive $files");
 		switch ($true) {
-			{$includeArchives.Length -ne 0} {
-				$zipper.AddSwitch("-ai$includeArchives");
+			{$password.Length -ne 0} {
+				$zipper.AddSwitch("-p$password");
 			}
-            {$disableParsingOfArchiveName.IsPresent} {
-                $zipper.Addswitch('-an');
-            }
-            {$include.Length -ne 0} {
-                $zipper.AddSwitch("-i$include");
-            }
-            {$exclude.Length -ne 0} {
-                $zipper.AddSwitch("-x$exclude");
-            }
-            {$password.Length -ne 0} {
-                $zipper.AddSwitch("-p$password");
-            }
-            {$recurse.IsPresent} {
-                $zipper.AddSwitch('-r');
-            }
 		}
 		$zipper.Run();
 		return $zipper;
