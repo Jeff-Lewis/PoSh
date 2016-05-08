@@ -5,6 +5,7 @@ $name = $MyInvocation.MyCommand.Name.Split('.')[0];
 Import-Module $name -Force;
 
 $z = Create-7zipper;
-Benchmark-7z -zipper $z
+Benchmark-7z -zipper $z -verbouse;
+$z;
 #$z.process.args = 'b 1';
 #$z.RunSync();
