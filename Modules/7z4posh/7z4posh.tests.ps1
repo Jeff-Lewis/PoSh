@@ -26,4 +26,9 @@ function test3 {
 	$z.process;
 }
 
-test3;
+function test4 {
+	Write-Host "Test 4: Test archive's files";
+	$z = Create-7zipper;
+	Test-7z -zipper $z -archive '../../7ztest.7z';
+}
+test4;
