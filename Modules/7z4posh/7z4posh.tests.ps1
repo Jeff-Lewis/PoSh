@@ -19,4 +19,11 @@ function test2 {
 	$z.process;
 }
 
-test2;
+function test3 {
+	Write-Host "Test 3: List encrypt archive";
+	$z = Create-7zipper;
+	List-7z -zipper $z -path '../../7zptest.7z' -password "Qq123456";
+	$z.process;
+}
+
+test3;
