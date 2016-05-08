@@ -247,7 +247,7 @@ List archive
 List archive file.
 .PARAMETER zipper
 Zip object, created of cmdlet Create-7zipper.
-.PARAMETER path
+.PARAMETER archive
 Path to archive file.
 .PARAMETER quiet
 Don't show stdout after run.
@@ -264,7 +264,8 @@ function List-7z {
 		[psobject]$zipper,
 		
 		[parameter(ValueFromPipeline = $true)]
-		[string]$path,
+		[Alias('path')]
+		[string]$archive,
 		
 		[Parameter()]
 		[string]$password,
@@ -274,8 +275,7 @@ function List-7z {
 	)
 	process {
 		$zipper.process.verbouse = !$quiet;
-		$zipper.AddSwitch("l $path");
-		$zipper.process.args = "l $path";
+		$zipper.AddSwitch("l $archive");
 		switch ($true) {
 			{$password.Length -ne 0} {
 				$zipper.AddSwitch("-p$password");
