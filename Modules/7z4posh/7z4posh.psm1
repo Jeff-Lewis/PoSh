@@ -337,82 +337,110 @@ function Test-7z {
 		return $zipper;
 	}
 }
-
+<#
+.SYNOPSIS
+Extract archive file.
+.DESCRIPTION
+Extracts files from an archive to the current directory or to the output directory.
+The output directory can be specified by -out (Set Output Directory) parameter.
+This cmdlet copies all extracted files to one directory.
+.PARAMETER zipper
+Zip object, created of cmdlet Create-7zipper.
+.PARAMETER archive
+Path to archive file.
+.PARAMETER fullPath
+If you want extract files with full paths, you must use this parameter.
+.PARAMETER out
+Specifies a destination directory where files are to be extracted.
+.PARAMETER password
+Specifies password.
+.PARAMETER quiet
+Don't show stdout after run.
+.PARAMETER overwrite
+Specifies the overwrite mode during extraction, to overwrite files already present on disk.
+.PARAMETER type
+Specifies the type of archive. 
+.INPUTS
+String. You can use pipeline from path to archive.
+.OUTPUTS
+Object with args, return $zipper and out stream $zipper.process.out
+Fill $zipper.process
+#>
 function Extract-7z {
-    [cmdletbinding()]
-    param(
-        [parameter(Mandatory = $true)]
-        [psobject]$zipper,
-
-        [parameter()]
-        [string]$archive,
-
-        [parameter()]
-        [switch]$fullPath,
-
-        [parameter()]
-        [string]$out,
-
-        [parameter()]
-        [string]$password,
-
-        [parameter()]
-        [switch]$recurse,
-
-        [parameter()]
-        [ValidateSet('All', 'Skip', 'RenameExtracting', 'RenameExisting')]
-        [string]$overwrite = 'Skip',
-
-        [parameter()]
-        [string]$type
-    )
-    process {
-        #fullpath param
-        switch ($fullPath.IsPresent) {
-            $true {
-                $zipper.process.args = "x -y $archive";
-            }
-            default {
-                $zipper.process.args = "e -y $archive";
-            }
-        }
-        
-        #advanced parameters
-        switch ($true) {
-            {$out.Length -ne 0} {
-                $zipper.AddSwitch("-o$out"); 
-            }
-            {$password.Length -ne 0} {
-                $zipper.AddSwitch("-p$password");
-            }
-            {$recurse.IsPresent} {
-                $zipper.AddSwitch('-r');
-            }
-            {$type.Length -ne 0} {
-                $zipper.AddSwitch("-t$type");
-            }
-        }
-
-        switch ($overwrite) {
-            'All' {
-                $zipper.AddSwitch('-oao');
-                break;
-            }
-            'Skip' {
-                $zipper.AddSwitch('-aos');
-                break;
-            }
-            'RenameExtracting' {
-                $zipper.AddSwitch('-aou');
-                break;
-            }
-            'RenameExisting' {
-                $zipper.AddSwitch('-aot');
-                break;
-            }
-        }
-
-        $zipper.Run();
-        return $zipper;
-    }
+	[cmdletbinding()]
+	param(
+		[parameter(Mandatory = $true)]
+		[psobject]$zipper,
+			
+		[parameter(ValueFromPipeline = $true)]
+		[Alias('path')]
+		[string]$archive,	
+		
+		[parameter()]
+		[switch]$fullPath,	
+		
+		[parameter()]
+		[Alias('destination')]
+		[string]$out,	
+		
+		[parameter()]
+		[string]$password,
+		
+		[parameter()]
+		[switch]$quiet,	
+		
+		[parameter()]
+		[ValidateSet('All', 'Skip', 'RenameExtracting', 'RenameExisting')]
+		[string]$overwrite = 'Skip',	
+		
+		[parameter()]
+		[string]$type
+	)
+	process {
+		#fullpath param
+		switch ($fullPath.IsPresent) {
+			$true {
+				$zipper.AddSwitch("x -y $archive");
+			}
+			default {
+				$zipper.AddSwitch("e -y $archive");
+			}
+		}
+		
+		#advanced parameters
+		switch ($true) {
+			{$out.Length -ne 0} {
+				$zipper.AddSwitch("-o$out");
+			}
+			{$password.Length -ne 0} {
+				$zipper.AddSwitch("-p$password");
+			}
+			{$type.Length -ne 0} {
+				$zipper.AddSwitch("-t$type");
+			}
+		}
+		
+		#overwrite mode
+		switch ($overwrite) {
+			'All' {
+				$zipper.AddSwitch('-oao');
+				break;
+			}
+			'Skip' {
+				$zipper.AddSwitch('-aos');
+				break;
+			}
+			'RenameExtracting' {
+				$zipper.AddSwitch('-aou');
+				break;
+			}
+			'RenameExisting' {
+				$zipper.AddSwitch('-aot');
+				break;
+			}
+		}
+		
+		$zipper.Run();
+		return $zipper;
+	}
 }
