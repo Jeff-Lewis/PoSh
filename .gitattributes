@@ -1,0 +1,3 @@
+*.psm1	sdiff
+*.ps1 	diff
+*.psd1	diff

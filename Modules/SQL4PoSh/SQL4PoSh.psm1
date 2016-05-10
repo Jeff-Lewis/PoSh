@@ -538,4 +538,3 @@ function Invoke-SQLReader {
         # Close Connection
         $connection.Close();
     }
-}
