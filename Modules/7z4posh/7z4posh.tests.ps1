@@ -31,4 +31,11 @@ function test4 {
 	$z = Create-7zipper;
 	Test-7z -zipper $z -archive '../../7ztest.7z';
 }
-test4;
+
+function test5 {
+	Write-Host "Test 5: Extract archive";
+	$z = Create-7zipper;
+	Extract-7z -zipper $z -archive '../../7ztest.7z' -out '../../';
+}
+
+test5;
