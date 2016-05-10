@@ -183,11 +183,32 @@ function Get-ConnectionString {
 	}
 }
 
+<#
+.SYNOPSIS
+Get a selection data.
+.DESCRIPTION
+Get a selection data from query
+.PARAMETER connectionstring
+Sets the string used to open a SQL database.
+.PARAMETER query
+Sets the text command to run against the data source.
+.PARAMETER isSQLServer
+Switch to connect to MS SQL Server.
+.INPUTS
+String. You can pipe query string objects.
+.OUTPUTS 
+Object {System.Data.DataSet, errors} 
+#>
 function Get-SQLData {
 	[CmdletBinding()]
 	param (
+		[Parameter()]
 		[string]$connetcionString,
+		
+		[Parameter(ValueFromPipeline = $true)]
 		[string]$query,
+		
+		[Parameter()]
 		[switch]$isSQLServer
 	)
 	begin {
