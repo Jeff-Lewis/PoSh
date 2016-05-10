@@ -1,4 +1,4 @@
-﻿# TODO
+# TODO
 #  поиграться  с ParameterSetName для кореетного ввода
 
 <#

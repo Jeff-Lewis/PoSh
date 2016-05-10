@@ -1,4 +1,4 @@
-﻿Clear-Host;
+Clear-Host;
 $here = Split-Path -Path $MyInvocation.MyCommand.Path -Parent;
 $env:PSModulePath = $env:PSModulePath.Insert(0, (Split-Path -Path $here -Parent) + ';');
 $name = $MyInvocation.MyCommand.Name.Split('.')[0];
