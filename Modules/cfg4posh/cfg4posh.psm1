@@ -5,6 +5,8 @@ Get configuration file
 Read config file and create hash bank of items
 .PARAMETER path
 Path to configure file
+.PARAMETER type
+Type of config file
 .INPUTS
 You can pipe path to cfg
 .OUTPUTS
@@ -14,22 +16,41 @@ function Get-Config {
 	[CmdletBinding()]
 	param(
 		[parameter(Mandatory = $true, ValueFromPipeline)]
-		[string]$path
+		[string]$path,
+
+		[Parameter()]
+		[ValidateSet('INI', 'JSON')]
+		[string]$type = 'INI'
 	)
-	process {
+	begin {
 		$hash = @{};
-		switch -regex  (Get-Content -Path $path) {
-			# create section
-			"^\[(.+)\]$" {
-				$section = $matches[1]
-				$hash[$section] = @{};
+	}
+	process {
+		switch ($type) {
+			'INI' { 
+				$content = Get-Content -Path $path;
+				switch -regex  ($content) {
+					# comment
+					"^[#;](.*)$" {
+						continue;
+					}
+					# create section
+					"^\[(.+)\]$" {
+						$section = $matches[1]
+						$hash[$section] = @{};
+					}
+					# add item=value to section
+					"^(.+)=(.+)$" {
+						$name = $matches[1];
+						$value = $matches[2];
+						$hash[$section][$name] = $value;
+					}	
+				}
 			}
-			# add item=value to section
-			"^(.+)=(.+)$" {
-				$name = $matches[1];
-				$value = $matches[2];
-				$hash[$section][$name] = $value;
-			}	
+			'JSON' {
+				$content = Get-Content -Path $path -Raw;
+				$hash = $content | ConvertFrom-Json;
+			}
 		}
 		return $hash;
 	}

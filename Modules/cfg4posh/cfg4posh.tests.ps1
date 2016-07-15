@@ -9,5 +9,11 @@ function test1 {
 	$cfg = Get-Config -path .\test.cfg;
 	return $cfg;
 }
+function test2 {
+	Write-Host "Test 2: Load JSON"
+	$cfg = Get-Config -path .\test.json -type 'JSON'
+	return $cfg;
+}
 
 test1;
+test2;
