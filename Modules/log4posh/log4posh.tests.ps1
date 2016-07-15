@@ -1,13 +1,13 @@
-#
-# This is a PowerShell Unit Test file.
-# You need a unit test framework such as Pester to run PowerShell Unit tests. 
-# You can download Pester from http://go.microsoft.com/fwlink/?LinkID=534084
-#
+﻿Clear-Host;
+$here = Split-Path -Path $MyInvocation.MyCommand.Path -Parent;
+$env:PSModulePath = $env:PSModulePath.Insert(0, (Split-Path -Path $here -Parent) + ';');
+$name = $MyInvocation.MyCommand.Name.Split('.')[0];
+Import-Module $name -Force;
 
-Describe "Get-Function" {
-	Context "Function Exists" {
-		It "Should Return" {
-		
-		}
-	}
+function test0 {
+	Write-Host "Test 0: Color text";
+	$str = Colorize-Text -text "Hello, World!!!";
+	Write-Host $str;
 }
+
+test0;
