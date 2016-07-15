@@ -4,10 +4,10 @@ $root = Split-Path -Path $MyInvocation.MyCommand.Path -Parent
 
 switch ([Environment]::Is64BitOperatingSystem) {
 	($true) {
-		$script:zbin = Join-Path -Path ($root) -ChildPath '7z\x64\7za.exe';
+		$script:zbin = Join-Path -Path ($root) -ChildPath '7z\x64\7z.exe';
 	}
 	default {
-		$script:zbin = Join-Path -Path ($root) -ChildPath '7z\7za.exe';
+		$script:zbin = Join-Path -Path ($root) -ChildPath '7z\7z.exe';
 	}
 }
 
@@ -58,8 +58,11 @@ function Invoke-Executable {
 		
 		[parameter()]
 		[ValidateSet('Idle', 'Normal', 'High', 'RealTime')]
-		[string]$priority = 'Normal'
-		)
+		[string]$priority = 'Normal',
+		
+		[parameter()]
+		[System.Text.Encoding]$encoding = [System.Text.Encoding]::UTF8
+	)
 	process{
 		# Setting process invocation parameters
 		$psi = New-Object -TypeName System.Diagnostics.ProcessStartInfo;
@@ -78,7 +81,9 @@ function Invoke-Executable {
 		$psi.CreateNoWindow = $true;
 		$psi.UseShellExecute = $false;
 		$psi.RedirectStandardOutput = $true;
+		$psi.StandardOutputEncoding = $encoding;
 		$psi.RedirectStandardError = $true;			
+		$psi.StandardErrorEncoding = $encoding;
 			
 		# Creating process object
 		$p = New-Object -TypeName System.Diagnostics.Process;
