@@ -1,7 +1,6 @@
-New-Variable -Name zbin -Scope script;
-
 $root = Split-Path -Path $MyInvocation.MyCommand.Path -Parent
 
+New-Variable -Name zbin -Scope script;
 switch ([Environment]::Is64BitOperatingSystem) {
 	($true) {
 		$script:zbin = Join-Path -Path ($root) -ChildPath '7z\x64\7z.exe';

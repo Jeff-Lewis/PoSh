@@ -59,6 +59,4 @@ FunctionsToExport = @('Create-7zipper', 'Benchmark-7z', 'List-7z', 'Test-7z', 'E
 
 # Default prefix for commands exported from this module. Override the default prefix using Import-Module -Prefix.
 # DefaultCommandPrefix = ''
-
 }
-
