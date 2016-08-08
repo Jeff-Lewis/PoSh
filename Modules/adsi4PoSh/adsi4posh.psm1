@@ -1,4 +1,16 @@
-﻿function Get-DefaultDomainNamingContext {
+﻿<#
+.SYNOPSIS
+Get the default domain naming context.
+.DESCRIPTION
+Get DirectoryEntry from rootDSE.
+.INPUTS
+You can`t pipe objects to this cmdlet
+.OUTPUTS
+System.DirectoryServices.DirectoryEntry
+.EXAMPLE
+$root = Get-DefaultDomainNamingContext;
+#>
+function Get-DefaultDomainNamingContext {
 	[CmdletBinding()]
 	param()
 	process {
@@ -6,51 +18,56 @@
 	}
 }
 
+<#
+.SYNOPSIS
+Search object in domain
+.DESCRIPTION
+Executes the search and returns a collection of the entries or only the first entry that are found.
+.PARAMETER directoryEntry
+The node in the Active Directory Domain Services hierarchy where the search starts.
+.PARAMETER filter
+Sets a value indicating the Lightweight Directory Access Protocol (LDAP) format filter string.
+By default (objectClass=*) - it is all objects find
+NOTES
+The filter uses the following guidelines:
+The string must be enclosed in parentheses.
+Expressions can use the relational operators: <, <=, =, >=, and >.An example is "(objectClass=user)".Another example is "(lastName>=Davis)".
+Compound expressions are formed with the prefix operators & and |.An example is "(&(objectClass=user)(lastName= Davis))".Another example is "(&(objectClass=printer)(|(building=42)(building=43)))".
+When the filter contains an attribute of ADS_UTC_TIME type, its value must be of the yyyymmddhhmmssZ format where y, m, d, h, m, and s stand for year, month, day, hour, minute, and second, respectively.The seconds (ss) value is optional.The final letter Z means there is no time differential.In this format, "10:20:00 A.M. May 13, 1999" becomes "19990513102000Z".Note that Active Directory Domain Services stores date and time as Coordinated Universal Time (Greenwich Mean Time).If you specify a time with no time differential, you are specifying the time in GMT time.
+If you are not in the Coordinated Universal Time time zone, you can add a differential value to the Coordinated Universal Time (instead of specifying Z) to specify a time according to your time zone.The differential is based on the following: differential = Coordinated Universal Time- Local.To specify a differential, use the following format: yyyymmddhhmmss[+/-]hhmm.For example, "8:52:58 P.M. March 23, 1999" New Zealand Standard Time (the differential is 12 hours) is specified as "19990323205258.0+1200".
+For more information about the LDAP search string format, see "Search Filter Syntax" in the MSDN Library at http://msdn.microsoft.com/library.
+.PARAMETER searchScope
+Sets a value indicating the scope of the search that is observed by the server.
+NOTES
+Base - Limits the search to the base object. The result contains a maximum of one object. When the AttributeScopeQuery property is specified for a search, the scope of the search must be set to Base.
+OneLevel - Searches the immediate child objects of the base object, excluding the base object.
+Subtree - Searches the whole subtree, including the base object and all its child objects. If the scope of a directory search is not specified, a Subtree type of search is performed.
+.PARAMETER properties
+Sets a value indicating the list of properties to retrieve during the search.
+NOTES
+The default is an empty object StringCollection, which corresponds to the recovery of all the properties.
+.PARAMETER propertyNamesOnly
+Sets a value indicating whether the search retrieves only the names of attributes to which values have been assigned.
+.PARAMETER findAll
+Switch to find a collection  of the entries in active directory.
+.PARAMETER attributeScopeQuery
+Sets the LDAP display name of the distinguished name attribute to search in. Only one attribute can be used for this type of search.
+.INPUTS 
+You can pipe objects to this cmdlet
+.OUTPUTS
+System.DirectoryServices.SearchResultCollection
+.EXAMPLE
+Search-ADSI -filter "(user=test123)" -findAll
+#>
 function Search-ADSI {
 	[CmdletBinding()]
 	param(
 		[Parameter()]
 		[System.DirectoryServices.DirectoryEntry]$directoryEntry,
-
-		<#
-		Строка фильтра поиска в формате LDAP; например "(objectClass=user)".
-		По умолчанию используется фильтр "(objectClass=*)", задающий извлечение всех объектов.
-
-		В отношении фильтров действуют следующие правила:
-		Строка должна быть заключена в скобки.
-		В выражениях можно использовать операторы отношений: <, <=, =, >= и >.
-		Например: "(objectClass=user)".
-		Другой пример: "(lastName>=Davis)".
-		Допускаются составные выражения, образуемые с помощью префиксных операторов & и |.
-		Например: "(&(objectClass=user)(lastName= Davis))".
-		Другой пример: "(&(objectClass=printer)(|(building=42)(building=43)))".
-		Если фильтр содержит атрибут типа ADS_UTC_TIME, его значение должно иметь формат yyyymmddhhmmssZ, 
-		где y, m, d, h, m и s обозначают соответственно год, месяц, день, часы, минуты и секунды.
-		Секунды (ss) указывать необязательно.Последняя буква Z означает, что значение задано без учета разницы 
-		во времени.В данном формате: "10:20:00 A.M. 13 мая 1999 г." будет указано как "19990513102000Z".
-		Обратите внимание, что доменные службы Active Directory хранят данные даты и времени в соответствии с 
-		универсальным глобальным временем (по Гринвичу).Если время указывается без учета разницы во времени, 
-		это означает, что оно определяется как время по Гринвичу.
-		Если пользователь находится в часовом поясе, отличном от пояса универсального глобального времени, он может 
-		задать местное время, добавив к значению разницу с универсальным глобальным временем (вместо буквы Z).Разница 
-		рассчитывается следующим образом: разница = глобальное универсальное время – местное время.Чтобы указать разницу 
-		во времени, используйте следующий формат: yyyymmddhhmmss[+/-]hhmm.Например: "8:52:58 P.M. 23 марта 1999 года по 
-		новозеландскому времени (разница — 12 часов) будет записано как "19990323205258.0+1200".
-		Дополнительные сведения о формате строки поиска LDAP приведены в разделе "Синтаксис фильтра поиска" в библиотеке 
-		MSDN Library по адресу http://msdn.microsoft.com/ru-ru/library/default.aspx.
-		#>
-		[Parameter()]
+		
+		[Parameter(ValueFromPipeline = $true)]
 		[string]$filter = '(objectClass=*)',
 
-		<#
-		Base - Ограничивает поиск базовым объектом.Результат содержит один объект (максимум). 
-		Если свойство AttributeScopeQuery задано для поиска, для области поиска следует задать Base.
-
-		OneLevel - Выполняется поиск ближайших дочерних объектов базового объекта, исключая сам базовый объект.
-
-		Subtree - При поиске просматривается все поддерево, включая базовый объект и все его дочерние объекты.
-		Если область поиска каталога не указана, выполняется поиска типа Subtree.
-		#>
 		[parameter()]
 		[ValidateSet('Base', 'OneLevel', 'Subtree')]
 		[string]$searchScope = 'Subtree',
@@ -111,6 +128,20 @@ function Search-ADSI {
 	}
 }
 
+<#
+.SYNOPSIS
+Get directory entry object
+.DESCRIPTION
+Get directory entry object from search result.
+.PARAMETER object
+Object include System.DirectoryServices.SearchResult as element
+.INPUTS
+You can pipe objects in this cmdlet
+.OUTPUTS
+System.DirectoryServices.DirectoryEntry
+.EXAMPLE
+Search-ADSI -filter "(user=test123)" -findAll | Get-ADSIDirectoryEntry
+#>
 function Get-ADSIDirectoryEntry {
 	[CmdletBinding()]
 	param(
@@ -135,6 +166,20 @@ function Get-ADSIDirectoryEntry {
 	}
 }
 
+<#
+.SYNOPSIS
+Get the entries that are member property of the Active Directories object
+.DESCRIPTION
+It works by finding the Search-Root directory entry and examining one of its attributes.
+.PARAMETER directoryEntry
+Directory entry 
+.INPUTS
+You can pipe DirectoryEntry to this cmdlet
+.OUTPUTS
+System.DirectoryServices.SearchResultCollection
+.EXAMPLE
+Search-ADSI -filter "(name=STR-GR-QUIKeFX-IFT)" -searchScope Subtree -findAll | Get-ADSIDirectoryEntry | Get-ADSIDirectoryMember
+#>
 function Get-ADSIDirectoryMember {
 	[CmdletBinding()]
 	param(
@@ -147,6 +192,20 @@ function Get-ADSIDirectoryMember {
 	}
 }
 
+<#
+.SYNOPSIS
+Get the entries that are memberOf property of the Active Directories object
+.DESCRIPTION
+It works by finding the Search-Root directory entry and examining one of its attributes.
+.PARAMETER directoryEntry
+Directory entry 
+.INPUTS
+You can pipe DirectoryEntry to this cmdlet
+.OUTPUTS
+System.DirectoryServices.SearchResultCollection
+.EXAMPLE
+Search-ADSI -filter "(name=sbt-chistyakov-vv)" | Get-ADSIDirectoryEntry | Get-ADSIDirectoryMemberOf
+#>
 function Get-ADSIDirectoryMemberOf {
 	[CmdletBinding()]
 	param(
@@ -159,6 +218,24 @@ function Get-ADSIDirectoryMemberOf {
 	}
 }
 
+<#
+.SYNOPSIS
+Get relation of objects.
+.DESCRIPTION
+Getting involved of assets Directory objects that are stored in the specified object property.
+.PARAMETER directoryEntry
+Directory entry
+.PARAMETER property
+Attribute name  of object.
+.PARAMETER filter
+Filter of finding objects. 
+.INPUTS
+You can pipe DirecroryEntry objects to cmdlt/ 
+.OUTPUTS
+System.DirectoryServices.DirectoryEntry
+.EXAMPLE
+Search-ADSI -filter "(name=STR-GR-QUIKeFX-IFT)" | Get-ADSIDirectoryEntry  | Get-ADSIReleation -property 'member'
+#>
 function Get-ADSIReleation {
 	[CmdletBinding()]
 	param(
@@ -178,6 +255,20 @@ function Get-ADSIReleation {
 	}
 }
 
+<#
+.SYNOPSIS
+Get member entries in group
+.DESCRIPTION
+Search objects in member properties of Active Directory group
+.PARAMETER groupName
+Group name.
+.INPUTS
+You can pipe groupname  to this cmdlet
+.OUTPUTS
+System.DirectoryServices.DirectoryEntry
+.EXAMPLE
+Get-ADSIGroupMemberEntry -groupName 'str-gr-quikefx-ift'
+#>
 function Get-ADSIGroupMemberEntry {
 	[CmdletBinding()]
 	param(
