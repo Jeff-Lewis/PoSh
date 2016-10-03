@@ -52,6 +52,8 @@ Sets a value indicating whether the search retrieves only the names of attribute
 Switch to find a collection  of the entries in active directory.
 .PARAMETER attributeScopeQuery
 Sets the LDAP display name of the distinguished name attribute to search in. Only one attribute can be used for this type of search.
+.PARAMETER pageSize
+Sets a value indicating the page size in a paged search.
 .INPUTS 
 You can pipe objects to this cmdlet
 .OUTPUTS
@@ -92,7 +94,10 @@ function Search-ADSI {
 		[switch]$findAll,
 
 		[parameter()]
-		[string]$attributeScopeQuery
+		[string]$attributeScopeQuery,
+
+		[parameter()]
+		[int]$pageSize = 1000
 
 	)
 
@@ -117,6 +122,7 @@ function Search-ADSI {
 		$searcher.PropertyNamesOnly = $propertyNamesOnly.IsPresent;
 
 		$searcher.Filter = $filter;
+		$searcher.PageSize = $pageSize;
 
 		$findArr = $null;
 		if ($findAll.IsPresent) {
@@ -173,6 +179,8 @@ Get the entries that are member property of the Active Directories object
 It works by finding the Search-Root directory entry and examining one of its attributes.
 .PARAMETER directoryEntry
 Directory entry 
+.PARAMETER pageSize
+Sets a value indicating the page size in a paged search.
 .INPUTS
 You can pipe DirectoryEntry to this cmdlet
 .OUTPUTS
@@ -184,11 +192,14 @@ function Get-ADSIDirectoryMember {
 	[CmdletBinding()]
 	param(
 		[Parameter(ValueFromPipeline = $true)]
-		[System.DirectoryServices.DirectoryEntry]$directoryEntry
+		[System.DirectoryServices.DirectoryEntry]$directoryEntry,
+
+		[Parameter()]
+		[int]$pageSize
 	)	
 
 	process {
-		return Search-ADSI -directoryEntry $directoryEntry -searchScope Base -attributeScopeQuery 'Member' -findAll;
+		return Search-ADSI -directoryEntry $directoryEntry -searchScope Base -attributeScopeQuery 'Member' -findAll -pageSize $pageSize;
 	}
 }
 
@@ -199,6 +210,8 @@ Get the entries that are memberOf property of the Active Directories object
 It works by finding the Search-Root directory entry and examining one of its attributes.
 .PARAMETER directoryEntry
 Directory entry 
+.PARAMETER pageSize
+Sets a value indicating the page size in a paged search.
 .INPUTS
 You can pipe DirectoryEntry to this cmdlet
 .OUTPUTS
@@ -210,11 +223,14 @@ function Get-ADSIDirectoryMemberOf {
 	[CmdletBinding()]
 	param(
 		[Parameter(ValueFromPipeline = $true)]
-		[System.DirectoryServices.DirectoryEntry]$directoryEntry
+		[System.DirectoryServices.DirectoryEntry]$directoryEntry,
+
+		[parameter()]
+		[int]$pageSize
 	)
 
 	process {
-		return Search-ADSI -directoryEntry $directoryEntry -searchScope Base -attributeScopeQuery 'MemberOf' -findAll;
+		return Search-ADSI -directoryEntry $directoryEntry -searchScope Base -attributeScopeQuery 'MemberOf' -findAll -pageSize $pageSize;
 	}
 }
 
@@ -228,7 +244,9 @@ Directory entry
 .PARAMETER property
 Attribute name  of object.
 .PARAMETER filter
-Filter of finding objects. 
+Filter of finding objects.
+.PARAMETER pageSize
+Sets a value indicating the page size in a paged search. 
 .INPUTS
 You can pipe DirecroryEntry objects to cmdlt/ 
 .OUTPUTS
@@ -246,11 +264,14 @@ function Get-ADSIReleation {
 		[string]$property,
 
 		[Parameter()]
-		[string]$filter = '(objectClass=*)'
+		[string]$filter = '(objectClass=*)',
+
+		[Parameter()]
+		[int]$pageSize
 	)
 		
 	process {
-		return (Search-ADSI -directoryEntry $directoryEntry -searchScope	Base -attributeScopeQuery $property -filter $filter -findAll | 
+		return (Search-ADSI -directoryEntry $directoryEntry -searchScope	Base -attributeScopeQuery $property -filter $filter -findAll -pageSize $pageSize | 
 			Get-ADSIDirectoryEntry);
 	}
 }
@@ -262,6 +283,8 @@ Get member entries in group
 Search objects in member properties of Active Directory group
 .PARAMETER groupName
 Group name.
+.PARAMETER pageSize
+Sets a value indicating the page size in a paged search.
 .INPUTS
 You can pipe groupname  to this cmdlet
 .OUTPUTS
@@ -276,11 +299,14 @@ function Get-ADSIGroupMemberEntry {
 		[System.DirectoryServices.DirectoryEntry]$directoryEntry,
 
 		[Parameter()]
-		[string]$groupName
+		[string]$groupName,
+
+		[Parameter()]
+		[int]$pageSize
 	)
 		
 	process {
-		return (Search-ADSI -directoryEntry $directoryEntry -filter "(&(name=$groupName)(objectClass=group))" | 
+		return (Search-ADSI -directoryEntry $directoryEntry -filter "(&(name=$groupName)(objectClass=group))"  -pageSize $pageSize| 
 			Get-ADSIDirectoryEntry | 
 				Get-ADSIReleation -property 'Member');
 	}
