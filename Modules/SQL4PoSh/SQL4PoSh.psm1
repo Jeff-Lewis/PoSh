@@ -1,56 +1,33 @@
-# TODO
-#  поиграться  с ParameterSetName для кореетного ввода
-
 <#
 .SYNOPSIS
 Create connectionstring
-
 .DESCRIPTION
 Create connection string of input parameters. If necessary, you can use the bush option 
 to enter your additional data.
-
 .PARAMETER server
 Server name. Use '.\' ask local server and '.' ask local server with instance.
-
 .PARAMETER instance
 Instance name. If you use the default: you can not to set.
-
 .PARAMETER database
 Database name.
-
 .PARAMETER user
 User name that has access to the database.
-
 .PARAMETER password
 User password to connect to the database.
-
 .PARAMETER trustedConnection
 If you using the same credentials to enter Windows and connect to the database, you can use 
 this option to not enter explicitly login and password.
-
 .PARAMETER oledb
 Switch to use OleDB interface connect to source.
-
 .PARAMETER datasource
 Data source for database connection.
-
 .PARAMETER custom
 Hashtable with additional parameters.
-
 .INPUTS
 String. You can pipe query string objects.
-
 .OUTPUTS
 Hashtable. Returns the number of rows for the query, as well as related information, and 
 error messages.
-
-.EXAMPLE
-$query = "print 'Hello, World!'";
-Invoke-SQLQuery -connectionString $str -query $query;
-
-.EXAMPLE
-$query = @("print 123", "print 'Hello, World!'");
-$query | Invoke-SQLQuery -connectionString $str -isSQLServer;
 #>
 function Get-ConnectionString {
 [CmdletBinding()]
@@ -110,68 +87,68 @@ function Get-ConnectionString {
 		if (![String]::IsNullOrEmpty($oledb)) {
 			switch ($oledb) {
 				'Oracle' {
-					$string.'Provider' = 'OraOLEDB.Oracle';
-					$string.'Date Source' = $datasource;
+					$string['Provider'] = 'OraOLEDB.Oracle';
+					$string['Date Source'] = $datasource;
 					if ($trustedConnection.IsPresent) {
 						$string.'OSAuthent' = '1';
 					}
 					else {
-						$string.'User Id'= $user;
-						$string.'Password' = $password;
+						$string['User Id'] = $user;
+						$string['Password'] = $password;
 					}
 				}
 				'Access' {
-					$string.'Provider' = 'Microsoft.ACE.OLEDB.12.0';
-					$string.'Data Source' = $datasource;
+					$string['Provider'] = 'Microsoft.ACE.OLEDB.12.0';
+					$string['Data Source'] = $datasource;
 					if ($trustedConnection.IsPresent) {
-						$string.'Persist Security Info' = 'False';
+						$string['Persist Security Info'] = 'False';
 					}
 					else {
-						$string.'Jet OLEDB:Database Password' = $password;
+						$string['Jet OLEDB:Database Password'] = $password;
 					}
 				}
 				'Active Directory' {
-					$string.'Provider' = 'ADSDSOObject';
+					$string['Provider'] = 'ADSDSOObject';
 					if (!$trustedConnection.IsPresent) {
-						$string.'User Id' = $user;
-						$string.'Password' = $password;
+						$string['User Id'] = $user;
+						$string['Password'] = $password;
 					}
 				}
 				'Microsoft' {
-					$string.'Provider' = 'sqloledb';
-					$string.'Data Source' = $datasource;
+					$string['Provider'] = 'sqloledb';
+					$string['Data Source'] = $datasource;
 					if (![System.String]::IsNullOrEmpty()) {
-						$string.'Data Source'    
+						$string['Data Source'];    
 					}
-					$string.'Initial Catalog' = $database;
+					$string['Initial Catalog'] = $database;
 					if($trustedConnection.IsPresent) {
-						$string.'Integrated Security' = 'SSPI';
+						$string['Integrated Security'] = 'SSPI';
 					}
 					else {
-						$string.'User Id' = $user;
-						$string.'Password' = $password;
+						$string['User Id'] = $user;
+						$string['Password'] = $password;
 					}
 				}
 				'MySQL' {
-					$string.'Provider' = 'MySQLProv';
-					$string.'Data Source' = $datasource;
-					$string.'Uid' = $user;
-					$string.'Pwd' = $password;
+					$string['Provider'] = 'MySQLProv';
+					$string['Data Source'] = $datasource;
+					$string['Uid'] = $user;
+					$string['Pwd'] = $password;
 				}
 			} 
 		}
 		else {
 			$string.'Server' = $server;
 			if (![String]::IsNullOrEmpty($instance)) {
-				$string.'Server' += "\$instance";
+				$string['Server'] += "\$instance";
 			}
-			$string.'Database' = $database;
+			$string['Database'] = $database;
 			if ($trustedConnection.IsPresent) {
-				$string.'Trusted_Connection' = 'True';
+				$string['Trusted_Connection'] = 'True';
 			}
 			else {
-				$string.'User Id' = $user;
-				$string.'Password' = $password;
+				$string['User Id'] = $user;
+				$string['Password'] = $password;
 			}
 		}
 
@@ -264,37 +241,28 @@ function Get-SQLData {
 <#
 .SYNOPSIS
 Executes a SQL statement against the connection and returns the number of rows affected.
-
 .DESCRIPTION
 Executes a SQL statement against the connection and returns the number of rows affected. 
 Also return errors and info message.
-
 .PARAMETER connectionString
 String used to open a SQL Server database. You can use cmdlet Get-ConnectionString to 
 get format string or do it yorself (http://connectionstrings.com).
-
 .PARAMETER query
 String with sql instructions
-
 .PRAMETER isSQLServer
 Switching to use of SQL Server
-
 .PARAMETER withTransact
 Switching to the use of the transaction mechanism. One transaction is used for all requests 
 sent via pipeline. if you want to use transactions for each request individually, it is 
 necessary to use cmdlet's foreach.
-
 .INPUTS
 String. You can pipe query string objects.
-
 .OUTPUTS
 Hashtable. Returns the number of rows for the query, as well as related information, and 
 error messages.
-
 .EXAMPLE
 $query = "print 'Hello, World!'";
 Invoke-SQLQuery -connectionString $str -query $query;
-
 .EXAMPLE
 $query = @("print 123", "print 'Hello, World!'");
 $query | Invoke-SQLQuery -connectionString $str -isSQLServer;
@@ -375,12 +343,16 @@ function Invoke-SQLQuery {
 		[scriptblock]$scriptInfoMessage =  {
 			# Add to $result.errors
 			$event.MessageData.errors += $eventArgs.Errors;
+			$event.MessageData.eventsCount += 1;
 		}
 		# Create hide event. Only this method is work!!! 
 		Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
 
 		# Execute
 		$result.rowCount = $command.ExecuteNonQuery();
+		while ($result.errors.count -ne $result.eventsCount) {
+      Start-Sleep -Milliseconds 10;
+    }
 
 		return $result;
 	}
@@ -417,37 +389,28 @@ function Invoke-SQLQuery {
 <#
 .SYNOPSIS
 Executes a SQL statement against the connection and returns query results with the number of rows affected.
-
 .DESCRIPTION
 Executes a SQL statement against the connection and returns query results withthe number of rows affected. 
 Also return errors and info message.
-
 .PARAMETER connectionString
 String used to open a SQL Server database. You can use cmdlet Get-ConnectionString to 
 get format string or do it yorself (http://connectionstrings.com).
-
 .PARAMETER query
 String with sql instructions
-
 .PRAMETER isSQLServer
 Switching to use of SQL Server
-
 .PARAMETER withTransact
 Switching to the use of the transaction mechanism. One transaction is used for all requests 
 sent via pipeline. if you want to use transactions for each request individually, it is 
 necessary to use cmdlet's foreach.
-
 .INPUTS
 String. You can pipe query string objects.
-
 .OUTPUTS
 Hashtable. Returns the number of rows for the query, as well as related information, and 
 error messages.
-
 .EXAMPLE
 $query = "print 'Hello, World!'";
 Invoke-SQLQuery -connectionString $str -query $query;
-
 .EXAMPLE
 $query = @("print 123", "print 'Hello, World!'");
 $query | Invoke-SQLQuery -connectionString $str -isSQLServer;
@@ -517,17 +480,23 @@ function Invoke-SQLReader {
 		if ($withTransact.IsPresent) {
 			$command.Transaction = $transaction;
 		}
-
+		
 		# Adding event handers for info messages
 		[scriptblock]$scriptInfoMessage =  {
 			# Add to $result.errors
 			$event.MessageData.errors += $eventArgs.Errors;
-		}
+			$event.MessageData.eventsCount += 1;
+		} 
+
 		# Create hide event. Only this method is work!!! 
 		Register-ObjectEvent -InputObject $connection -EventName 'InfoMessage' -Action $scriptInfoMessage -MessageData $result -SupportEvent;
-  
+		
 		# Execute
 		[System.Data.Common.DbDataReader]$reader = $command.ExecuteReader();
+    #sync execute and events
+		while ($result.errors.count -ne $result.eventsCount) {
+      Start-Sleep -Milliseconds 10;
+    }
 		[System.Data.DataTable]$result.data = New-Object -TypeName System.Data.DataTable;
 		$result.data.Load($reader);
 		$reader.Close();
