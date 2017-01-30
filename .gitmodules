@@ -20,3 +20,6 @@
 [submodule "Modules/log4posh"]
 	path = Modules/log4posh
 	url = https://github.com/vvchistiakov/log4posh.git
+[submodule "Modules\\zabbix4posh"]
+	path = Modules\\zabbix4posh
+	url = https://github.com/vvchistiakov/zabbix4posh.git
