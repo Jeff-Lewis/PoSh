@@ -1,0 +1,25 @@
+[submodule "Modules/7z4posh"]
+	path = Modules/7z4posh
+	url = https://github.com/vvchistiakov/7z4posh.git
+[submodule "Modules/sql4posh"]
+	path = Modules/sql4posh
+	url = https://github.com/vvchistiakov/sql4posh
+
+[submodule "Modules/adsi4posh"]
+	path = Modules/adsi4posh
+	url = https://github.com/vvchistiakov/adsi4posh.git
+[submodule "Modules/cfg4posh"]
+	path = Modules/cfg4posh
+	url = https://github.com/vvchistiakov/cfg4posh.git
+[submodule "Modules/common4posh"]
+	path = Modules/common4posh
+	url = https://github.com/vvchistiakov/common4posh.git
+[submodule "Modules/encrypt4posh"]
+	path = Modules/encrypt4posh
+	url = https://github.com/vvchistiakov/encrypt4posh.git
+[submodule "Modules/log4posh"]
+	path = Modules/log4posh
+	url = https://github.com/vvchistiakov/log4posh.git
+[submodule "Modules\\zabbix4posh"]
+	path = Modules\\zabbix4posh
+	url = https://github.com/vvchistiakov/zabbix4posh.git
