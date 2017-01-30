@@ -4,3 +4,10 @@
 [submodule "Modules/sql4posh"]
 	path = Modules/sql4posh
 	url = https://github.com/vvchistiakov/sql4posh
+
+[submodule "Modules/adsi4posh"]
+	path = Modules/adsi4posh
+	url = https://github.com/vvchistiakov/adsi4posh.git
+[submodule "Modules/cfg4posh"]
+	path = Modules/cfg4posh
+	url = https://github.com/vvchistiakov/cfg4posh.git
