@@ -1,3 +1,6 @@
 [submodule "Modules/7z4posh"]
 	path = Modules/7z4posh
 	url = https://github.com/vvchistiakov/7z4posh.git
+[submodule "Modules/sql4posh"]
+	path = Modules/sql4posh
+	url = https://github.com/vvchistiakov/sql4posh
