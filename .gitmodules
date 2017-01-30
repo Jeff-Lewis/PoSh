@@ -17,3 +17,6 @@
 [submodule "Modules/encrypt4posh"]
 	path = Modules/encrypt4posh
 	url = https://github.com/vvchistiakov/encrypt4posh.git
+[submodule "Modules/log4posh"]
+	path = Modules/log4posh
+	url = https://github.com/vvchistiakov/log4posh.git
