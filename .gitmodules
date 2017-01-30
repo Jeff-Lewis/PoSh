@@ -1,0 +1,3 @@
+[submodule "Modules/7z4posh"]
+	path = Modules/7z4posh
+	url = https://github.com/vvchistiakov/7z4posh.git
